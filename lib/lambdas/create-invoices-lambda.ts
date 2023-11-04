@@ -15,7 +15,7 @@ export class CreateInvoicesLambda extends Construct {
 
   private createLambda() {
     this.lambda = new Lambda.Function(this, "Lambda", {
-      runtime: Lambda.Runtime.NODEJS_18_X,
+      runtime: Lambda.Runtime.NODEJS_16_X,
       code: Lambda.AssetCode.fromAsset("dist/src/functions/create-invoices"),
       handler: "index.handler",
       timeout: cdk.Duration.seconds(5),
@@ -28,7 +28,7 @@ export class CreateInvoicesLambda extends Construct {
 
     this.lambda.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ['dynamodb:Query'],
+        actions: ['dynamodb:Query', 'dynamodb:PutItem'],
         resources: [DynamoDB.getInstance().invoicesTable.tableArn],
       })
     );

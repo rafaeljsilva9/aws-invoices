@@ -15,7 +15,7 @@ export class SignUpLambda extends Construct {
 
   private createLambda() {
     this.lambda = new Lambda.Function(this, "Lambda", {
-      runtime: Lambda.Runtime.NODEJS_18_X,
+      runtime: Lambda.Runtime.NODEJS_16_X,
       code: Lambda.AssetCode.fromAsset("dist/src/functions/sign-up"),
       handler: "index.handler",
       timeout: cdk.Duration.seconds(5),
