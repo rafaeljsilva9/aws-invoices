@@ -7,11 +7,13 @@ import { InvoicesUserPoolClient } from './cognito/user-pool-client';
 import { SignUpLambda } from './lambdas/sign-up-lambda';
 import { SignInLambda } from './lambdas/sign-in-lambda';
 import { ConfirmEmailLambda } from './lambdas/confirm-email-lambda';
+import { DynamoDB } from './dynamo/dynamo-db';
 
 export class AwsInvoicesStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     try {
       super(scope, id, props);
+      DynamoDB.construct(this, 'Dynamo');
       this.constructCognitoResourses();
       this.constructLambdas();
       new ApiGateway(this, 'ApiGateway');

@@ -1,6 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import * as Lambda from 'aws-cdk-lib/aws-lambda';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
+import { DynamoDB } from "../dynamo/dynamo-db";
 
 export class CreateInvoicesLambda extends Construct {
   private static instance: CreateInvoicesLambda;
@@ -17,7 +19,19 @@ export class CreateInvoicesLambda extends Construct {
       code: Lambda.AssetCode.fromAsset("dist/src/functions/create-invoices"),
       handler: "index.handler",
       timeout: cdk.Duration.seconds(5),
+      environment: {
+        DYNAMODB_TABLE_NAME: DynamoDB.getInstance().invoicesTable.tableName,
+      },
     });
+
+    DynamoDB.getInstance().invoicesTable.grantReadData(this.lambda);
+
+    this.lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['dynamodb:Query'],
+        resources: [DynamoDB.getInstance().invoicesTable.tableArn],
+      })
+    );
   }
 
   public static construct(scope: Construct, id: string): void {
