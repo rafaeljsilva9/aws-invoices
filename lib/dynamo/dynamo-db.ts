@@ -21,7 +21,7 @@ export class DynamoDB extends Construct {
 
     this.invoicesTable.addGlobalSecondaryIndex({
       indexName: 'CustomerEmail',
-      partitionKey: { name: 'Status', type: aws_dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'CustomerEmail', type: aws_dynamodb.AttributeType.STRING },
       projectionType: aws_dynamodb.ProjectionType.ALL,
     });
   }

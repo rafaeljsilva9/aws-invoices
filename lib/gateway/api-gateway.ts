@@ -8,6 +8,7 @@ import { SignUpLambda } from "../lambdas/sign-up-lambda";
 import { InvoicesUserPool } from "../cognito/user-pool";
 import { SignInLambda } from "../lambdas/sign-in-lambda";
 import { ConfirmEmailLambda } from "../lambdas/confirm-email-lambda";
+import { GetInvoicesLambda } from "../lambdas/get-invoices-lambda";
 
 export class ApiGateway extends Construct {
   constructor(scope: Construct, id: string) {
@@ -33,12 +34,14 @@ export class ApiGateway extends Construct {
     });
 
     const apiRootResource = api.root.addResource("api");
-    this.createSignUpMethod(apiRootResource);
-    this.createSignInMethod(apiRootResource);
-    this.createConfirmEmailMethod(apiRootResource);
+    const authRootResource = apiRootResource.addResource("auth");
+    this.createSignUpMethod(authRootResource);
+    this.createSignInMethod(authRootResource);
+    this.createConfirmEmailMethod(authRootResource);
     
     const invoicesRootResource = apiRootResource.addResource("invoices");
     this.createInvoicesMethod(invoicesRootResource, authorizer);
+    this.getInvoicesMethod(invoicesRootResource, authorizer);
 
     this.exportFixedOutputs(api);
   }
@@ -92,6 +95,18 @@ export class ApiGateway extends Construct {
     );
 
     resource.addMethod("POST", lambdaIntegration, {
+      authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+      methodResponses: [{ statusCode: "200" }],
+    });
+  }
+
+  private getInvoicesMethod(resource: apigateway.Resource, authorizer: apigateway.CognitoUserPoolsAuthorizer) {
+    const lambdaIntegration = new apigateway.LambdaIntegration(
+      GetInvoicesLambda.getInstance().lambda, { proxy: true }
+    );
+
+    resource.addMethod("GET", lambdaIntegration, {
       authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
       methodResponses: [{ statusCode: "200" }],

@@ -8,12 +8,15 @@ import { SignUpLambda } from './lambdas/sign-up-lambda';
 import { SignInLambda } from './lambdas/sign-in-lambda';
 import { ConfirmEmailLambda } from './lambdas/confirm-email-lambda';
 import { DynamoDB } from './dynamo/dynamo-db';
+import { GetInvoicesLambda } from './lambdas/get-invoices-lambda';
+import { LambdaLayer } from './lambda-layer/lambda-layer';
 
 export class AwsInvoicesStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     try {
       super(scope, id, props);
       DynamoDB.construct(this, 'Dynamo');
+      LambdaLayer.construct(this, 'LambdaLayer');
       this.constructCognitoResourses();
       this.constructLambdas();
       new ApiGateway(this, 'ApiGateway');
@@ -33,5 +36,6 @@ export class AwsInvoicesStack extends cdk.Stack {
     SignInLambda.construct(this, 'SignIn');
     ConfirmEmailLambda.construct(this, 'ConfirmEmail');
     CreateInvoicesLambda.construct(this, 'CreateInvoices');
+    GetInvoicesLambda.construct(this, 'GetInvoices');
   }
 }

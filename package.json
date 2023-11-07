@@ -5,7 +5,8 @@
     "aws-invoices": "bin/aws-invoices.js"
   },
   "scripts": {
-    "build": "tsc",
+    "aws": "npm run build && cd tools && bash pack-dependencies.sh",
+    "build": "rm -r dist || true && tsc",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
@@ -25,6 +26,7 @@
     "aws-cdk-lib": "2.103.1",
     "aws-sdk": "^2.1488.0",
     "constructs": "^10.0.0",
+    "jwt-decode": "^4.0.0",
     "source-map-support": "^0.5.21"
   }
 }
