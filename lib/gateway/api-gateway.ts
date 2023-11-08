@@ -9,6 +9,7 @@ import { InvoicesUserPool } from "../cognito/user-pool";
 import { SignInLambda } from "../lambdas/sign-in-lambda";
 import { ConfirmEmailLambda } from "../lambdas/confirm-email-lambda";
 import { GetInvoicesLambda } from "../lambdas/get-invoices-lambda";
+import { DeleteInvoiceLambda } from "../lambdas/delete-invoice-lambda";
 
 export class ApiGateway extends Construct {
   constructor(scope: Construct, id: string) {
@@ -34,14 +35,17 @@ export class ApiGateway extends Construct {
     });
 
     const apiRootResource = api.root.addResource("api");
-    const authRootResource = apiRootResource.addResource("auth");
-    this.createSignUpMethod(authRootResource);
-    this.createSignInMethod(authRootResource);
-    this.createConfirmEmailMethod(authRootResource);
-    
-    const invoicesRootResource = apiRootResource.addResource("invoices");
-    this.createInvoicesMethod(invoicesRootResource, authorizer);
-    this.getInvoicesMethod(invoicesRootResource, authorizer);
+    const authResource = apiRootResource.addResource("auth");
+    this.createSignUpMethod(authResource);
+    this.createSignInMethod(authResource);
+    this.createConfirmEmailMethod(authResource);
+
+    const invoicesResource = apiRootResource.addResource("invoices");
+    this.createInvoicesMethod(invoicesResource, authorizer);
+    this.getInvoicesMethod(invoicesResource, authorizer);
+
+    const invoiceIdResource = invoicesResource.addResource("{invoiceNumber}");
+    this.deleteInvoicesMethod(invoiceIdResource, authorizer);
 
     this.exportFixedOutputs(api);
   }
@@ -107,6 +111,18 @@ export class ApiGateway extends Construct {
     );
 
     resource.addMethod("GET", lambdaIntegration, {
+      authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+      methodResponses: [{ statusCode: "200" }],
+    });
+  }
+
+  private deleteInvoicesMethod(resource: apigateway.Resource, authorizer: apigateway.CognitoUserPoolsAuthorizer) {
+    const lambdaIntegration = new apigateway.LambdaIntegration(
+      DeleteInvoiceLambda.getInstance().getLambda(), { proxy: true }
+    );
+
+    resource.addMethod("DELETE", lambdaIntegration, {
       authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
       methodResponses: [{ statusCode: "200" }],

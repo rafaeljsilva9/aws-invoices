@@ -14,7 +14,7 @@ export class ExceptionHandler {
     if (error instanceof Exception) {
       return {
         statusCode: error.code,
-        body: JSON.stringify({ code: error.code, message: error.data }),
+        body: JSON.stringify({ code: error.code, message: error.message }),
       };
     }
 

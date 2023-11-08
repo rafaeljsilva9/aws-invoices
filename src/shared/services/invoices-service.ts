@@ -46,11 +46,11 @@ export class InvoicesService {
     return result.Items as Invoice[];
   }
 
-  async getInvoice(invoiceNumber: string): Promise<Invoice> {
+  async getInvoice({ invoiceNumber, customerEmail }: { invoiceNumber: string, customerEmail: string }): Promise<Invoice> {
     const result = await this.docClient
       .get({
         TableName: this.tableName,
-        Key: { invoiceNumber },
+        Key: { InvoiceNumber: invoiceNumber, CustomerEmail: customerEmail },
       })
       .promise();
 
@@ -90,11 +90,11 @@ export class InvoicesService {
   //   return updated.Attributes as Invoice;
   // }
 
-  async deleteInvoice(invoiceId: string) {
+  async deleteInvoice({ invoiceNumber, customerEmail }: { invoiceNumber: string, customerEmail: string }) {
     return this.docClient
       .delete({
         TableName: this.tableName,
-        Key: { postId: invoiceId },
+        Key: { InvoiceNumber: invoiceNumber, CustomerEmail: customerEmail },
       })
       .promise();
   }
