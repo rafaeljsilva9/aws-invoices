@@ -12,6 +12,7 @@ import { GetInvoicesLambda } from './lambdas/get-invoices-lambda';
 import { LambdaLayer } from './lambda-layer/lambda-layer';
 import { DeleteInvoiceLambda } from './lambdas/delete-invoice-lambda';
 import { UpdateInvoiceLambda } from './lambdas/update-invoice-lambda';
+import { SnsTopic } from './sns/sns-topic';
 
 export class AwsInvoicesStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -31,6 +32,7 @@ export class AwsInvoicesStack extends cdk.Stack {
   private constructCognitoResourses(): void {
     InvoicesUserPool.construct(this, 'UserPool');
     InvoicesUserPoolClient.construct(this, 'UserPoolClient');
+    SnsTopic.construct(this, "InvoicesSnsTopic");
   }
 
   private constructLambdas(): void {
