@@ -3,6 +3,7 @@ import * as Lambda from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { InvoicesUserPoolClient } from "../cognito/user-pool-client";
 import { InvoicesUserPool } from "../cognito/user-pool";
+import { LambdaLayer } from "../lambda-layer/lambda-layer";
 
 export class SignInLambda extends Construct {
   private static instance: SignInLambda;
@@ -15,9 +16,10 @@ export class SignInLambda extends Construct {
 
   private createLambda() {
     this.lambda = new Lambda.Function(this, "Lambda", {
-      runtime: Lambda.Runtime.NODEJS_18_X,
+      runtime: Lambda.Runtime.NODEJS_16_X,
       code: Lambda.AssetCode.fromAsset("dist/src/functions/sign-in"),
       handler: "index.handler",
+      layers: [LambdaLayer.getInstance().getLayer()],
       timeout: cdk.Duration.seconds(5),
       environment: {
         USER_POOL_CLIENT_ID: InvoicesUserPoolClient.getUserPoolClient().userPoolClientId,

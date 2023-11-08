@@ -1,26 +1,36 @@
-import { CognitoIdentityProviderClient, ConfirmSignUpCommand } from '@aws-sdk/client-cognito-identity-provider';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda/trigger/api-gateway-proxy';
+import { APIGatewayEvent, Context } from 'aws-lambda';
+import { CognitoIdentityServiceProvider } from 'aws-sdk';
 import { LambdaInput } from './lambda-input';
+import { ConfirmEmailMiddleware } from './validation-middleware';
+import { ApiLambdaHandler } from '/opt/shared/utils/api-lambda/api-lambda-handler';
+import { HttpStatusCode } from '/opt/shared/utils/api-lambda/http-status-code';
+import { Exception } from '/opt/shared/utils/exception/exception';
 
-const client = new CognitoIdentityProviderClient({});
+const cognito = new CognitoIdentityServiceProvider();
+const params = {
+  userPoolClientId: process.env.USER_POOL_CLIENT_ID!!,
+};
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise<{ confirmed: boolean }> => {
+  await ConfirmEmailMiddleware.validate(event);
+
   const { body } = event;
   const { username, code } = JSON.parse(body!!) as LambdaInput;
 
-  if (username === undefined || code === undefined) {
-    return Promise.resolve({ statusCode: 400, body: 'Missing username or confirmation code' });
+  try {
+    await cognito
+      .confirmSignUp({
+        ClientId: params.userPoolClientId,
+        Username: username,
+        ConfirmationCode: code,
+      })
+      .promise();
+
+    return { confirmed: true };
+  } catch (error) {
+    throw Exception.new({ code: HttpStatusCode.INTERNAL_ERROR, overrideMessage: 'Error confirming user' });
   }
+}
 
-  const userPoolClientId = process.env.USER_POOL_CLIENT_ID;
-
-  await client.send(
-    new ConfirmSignUpCommand({
-      ClientId: userPoolClientId,
-      Username: username,
-      ConfirmationCode: code,
-    }),
-  );
-
-  return { statusCode: 200, body: 'User confirmed' };
-};
+const { handler } = new ApiLambdaHandler(lambdaHandler);
+export { handler };

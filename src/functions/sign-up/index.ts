@@ -1,28 +1,26 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayEvent, Context } from 'aws-lambda';
 import { LambdaInput } from './lambda-input';
+import { SignUpMiddleware } from './validation-middleware';
 import { NotificationService } from '/opt/shared/services/notification-service';
+import { ApiLambdaHandler } from '/opt/shared/utils/api-lambda/api-lambda-handler';
+import { HttpStatusCode } from '/opt/shared/utils/api-lambda/http-status-code';
+import { Exception } from '/opt/shared/utils/exception/exception';
 import AWS = require('aws-sdk');
 
+const cognito = new AWS.CognitoIdentityServiceProvider();
 const sns = new AWS.SNS();
-
 const params = {
   userPoolClientId: process.env.USER_POOL_CLIENT_ID!!,
   snsTopicArn: process.env.SNS_TOPIC_ARN!!,
 };
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise<{ created: true }> => {
+  await SignUpMiddleware.validate(event);
+
   const { body } = event;
   const { username, password, email } = JSON.parse(body!!) as LambdaInput;
 
-  if (username === undefined || password === undefined || email === undefined) {
-    return { statusCode: 400, body: 'Missing username, email, or password' };
-  }
-
   const notificationService = new NotificationService(sns, params.snsTopicArn);
-
-  await notificationService.subscribe(email);
-
-  const cognito = new AWS.CognitoIdentityServiceProvider();
 
   const signUpParams = {
     ClientId: params.userPoolClientId,
@@ -38,9 +36,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   try {
     await cognito.signUp(signUpParams).promise();
-    return { statusCode: 200, body: 'User created' };
+    await notificationService.subscribe(email);
+    return { created: true };
   } catch (error) {
-    console.error('Error signing up user:', error);
-    return { statusCode: 500, body: 'Error signing up user' };
+    throw Exception.new({ code: HttpStatusCode.INTERNAL_ERROR, overrideMessage: 'Error signing up user' })
   }
-};
+}
+
+const { handler } = new ApiLambdaHandler(lambdaHandler);
+export { handler };

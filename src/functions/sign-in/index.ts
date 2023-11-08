@@ -1,35 +1,44 @@
-import { CognitoIdentityProviderClient, InitiateAuthCommand } from '@aws-sdk/client-cognito-identity-provider';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda/trigger/api-gateway-proxy';
-import { LambdaInput } from '../sign-up/lambda-input';
+import { APIGatewayEvent, Context } from 'aws-lambda';
+import { CognitoIdentityServiceProvider } from 'aws-sdk';
+import { LambdaInput } from './lambda-input';
+import { SignInMiddleware } from './validation-middleware';
+import { ApiLambdaHandler } from '/opt/shared/utils/api-lambda/api-lambda-handler';
+import { HttpStatusCode } from '/opt/shared/utils/api-lambda/http-status-code';
+import { Exception } from '/opt/shared/utils/exception/exception';
 
-const client = new CognitoIdentityProviderClient({});
+const cognito = new CognitoIdentityServiceProvider();
+const params = {
+  userPoolClientId: process.env.USER_POOL_CLIENT_ID!!,
+};
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise<{ token: string }> => {
+  await SignInMiddleware.validate(event);
+
   const { body } = event;
   const { username, password } = JSON.parse(body!!) as LambdaInput;
 
-  if (username === undefined || password === undefined) {
-    return Promise.resolve({ statusCode: 400, body: 'Missing username or password' });
+  const cognitoParams = {
+    AuthFlow: 'USER_PASSWORD_AUTH',
+    ClientId: params.userPoolClientId,
+    AuthParameters: {
+      USERNAME: username,
+      PASSWORD: password,
+    },
+  };
+
+  try {
+    const result = await cognito.initiateAuth(cognitoParams).promise();
+    const idToken = result.AuthenticationResult?.IdToken;
+
+    if (idToken === undefined) {
+      throw Exception.new({ code: HttpStatusCode.UNAUTHORIZED_ERROR, overrideMessage: 'Authentication failed' });
+    }
+
+    return { token: idToken };
+  } catch (error) {
+    throw Exception.new({ code: HttpStatusCode.INTERNAL_ERROR, overrideMessage: 'Error signing in user' })
   }
+}
 
-  const userPoolClientId = process.env.USER_POOL_CLIENT_ID;
-
-  const result = await client.send(
-    new InitiateAuthCommand({
-      AuthFlow: 'USER_PASSWORD_AUTH',
-      ClientId: userPoolClientId,
-      AuthParameters: {
-        USERNAME: username,
-        PASSWORD: password,
-      },
-    }),
-  );
-
-  const idToken = result.AuthenticationResult?.IdToken;
-
-  if (idToken === undefined) {
-    return Promise.resolve({ statusCode: 401, body: 'Authentication failed' });
-  }
-
-  return { statusCode: 200, body: idToken };
-};
+const { handler } = new ApiLambdaHandler(lambdaHandler);
+export { handler };
