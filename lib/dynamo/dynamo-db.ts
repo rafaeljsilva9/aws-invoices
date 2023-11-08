@@ -14,7 +14,6 @@ export class DynamoDB extends Construct {
   private createTable() {
     this.invoicesTable = new aws_dynamodb.Table(this, 'InvoicesTable', {
       partitionKey: { name: 'InvoiceNumber', type: aws_dynamodb.AttributeType.STRING },
-      sortKey: { name: 'CustomerEmail', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });

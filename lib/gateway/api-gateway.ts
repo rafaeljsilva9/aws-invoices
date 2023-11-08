@@ -11,6 +11,7 @@ import { ConfirmEmailLambda } from "../lambdas/confirm-email-lambda";
 import { GetInvoicesLambda } from "../lambdas/get-invoices-lambda";
 import { DeleteInvoiceLambda } from "../lambdas/delete-invoice-lambda";
 import { UpdateInvoiceLambda } from "../lambdas/update-invoice-lambda";
+import { GetInvoiceLambda } from "../lambdas/get-invoice-lambda";
 
 export class ApiGateway extends Construct {
   constructor(scope: Construct, id: string) {
@@ -46,6 +47,7 @@ export class ApiGateway extends Construct {
     this.getInvoicesMethod(invoicesResource, authorizer);
 
     const invoiceIdResource = invoicesResource.addResource("{invoiceNumber}");
+    this.getInvoiceMethod(invoiceIdResource, authorizer);
     this.deleteInvoicesMethod(invoiceIdResource, authorizer);
     this.updateInvoicesMethod(invoiceIdResource, authorizer);
 
@@ -109,7 +111,19 @@ export class ApiGateway extends Construct {
 
   private getInvoicesMethod(resource: apigateway.Resource, authorizer: apigateway.CognitoUserPoolsAuthorizer) {
     const lambdaIntegration = new apigateway.LambdaIntegration(
-      GetInvoicesLambda.getInstance().lambda, { proxy: true }
+      GetInvoicesLambda.getInstance().getLambda(), { proxy: true }
+    );
+
+    resource.addMethod("GET", lambdaIntegration, {
+      authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+      methodResponses: [{ statusCode: "200" }],
+    });
+  }
+
+  private getInvoiceMethod(resource: apigateway.Resource, authorizer: apigateway.CognitoUserPoolsAuthorizer) {
+    const lambdaIntegration = new apigateway.LambdaIntegration(
+      GetInvoiceLambda.getInstance().getLambda(), { proxy: true }
     );
 
     resource.addMethod("GET", lambdaIntegration, {

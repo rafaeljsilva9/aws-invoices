@@ -7,7 +7,7 @@ export class InvoicesService {
     private readonly tableName: string
   ) { }
 
-  async getInvoices({ customerEmail, status }: { customerEmail: string, status: string }): Promise<Invoice[]> {
+  async getInvoices({ customerEmail, status }: { customerEmail: string, status?: string }): Promise<Invoice[]> {
     const attributeNames: AWS.DynamoDB.DocumentClient.ExpressionAttributeNameMap = {
       '#CustomerEmail': 'CustomerEmail'
     };
@@ -46,11 +46,11 @@ export class InvoicesService {
     return result.Items as Invoice[];
   }
 
-  async getInvoice({ invoiceNumber, customerEmail }: { invoiceNumber: string, customerEmail: string }): Promise<Invoice> {
+  async getInvoice({ invoiceNumber, customerEmail }: { invoiceNumber: string, customerEmail?: string }): Promise<Invoice> {
     const result = await this.docClient
       .get({
         TableName: this.tableName,
-        Key: { InvoiceNumber: invoiceNumber, CustomerEmail: customerEmail },
+        Key: { InvoiceNumber: invoiceNumber },
       })
       .promise();
 
@@ -68,14 +68,13 @@ export class InvoicesService {
     return invoice;
   }
 
-  async updateInvoice(invoiceNumber: string, partialInvoice: Partial<Invoice>): Promise<Invoice> {
-    console.log('partialInvoice', partialInvoice)
+  async updateInvoice(invoiceNumber: string, invoice: { status: string }): Promise<Invoice> {
+    const { status } = invoice;
     const updated = await this.docClient
       .update({
         TableName: this.tableName,
         Key: {
           InvoiceNumber: invoiceNumber,
-          CustomerEmail: partialInvoice.CustomerEmail,
         },
         UpdateExpression:
           "set #Status = :status",
@@ -83,7 +82,7 @@ export class InvoicesService {
           '#Status': 'Status'
         },
         ExpressionAttributeValues: {
-          ":status": partialInvoice.Status,
+          ":status": status,
         },
         ReturnValues: "ALL_NEW",
       })
@@ -92,11 +91,13 @@ export class InvoicesService {
     return updated.Attributes as Invoice;
   }
 
-  async deleteInvoice({ invoiceNumber, customerEmail }: { invoiceNumber: string, customerEmail: string }) {
-    return this.docClient
+  async deleteInvoice(invoiceNumber: string): Promise<void> {
+    await this.docClient
       .delete({
         TableName: this.tableName,
-        Key: { InvoiceNumber: invoiceNumber, CustomerEmail: customerEmail },
+        Key: {
+          InvoiceNumber: invoiceNumber,
+        },
       })
       .promise();
   }

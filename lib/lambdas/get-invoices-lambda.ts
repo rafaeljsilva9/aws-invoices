@@ -7,11 +7,15 @@ import { LambdaLayer } from "../lambda-layer/lambda-layer";
 
 export class GetInvoicesLambda extends Construct {
   private static instance: GetInvoicesLambda;
-  public lambda: Lambda.Function;
+  private lambda: Lambda.Function;
 
   private constructor(scope: Construct, id: string) {
     super(scope, id);
     this.createLambda();
+  }
+
+  public getLambda(): Lambda.Function {
+    return this.lambda;
   }
 
   private createLambda() {

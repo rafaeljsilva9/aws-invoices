@@ -1,44 +1,41 @@
 import * as cdk from "aws-cdk-lib";
 import * as Lambda from 'aws-cdk-lib/aws-lambda';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import { InvoicesUserPoolClient } from "../cognito/user-pool-client";
-import { InvoicesUserPool } from "../cognito/user-pool";
-import { SnsTopic } from "../sns/sns-topic";
+import { DynamoDB } from "../dynamo/dynamo-db";
 import { LambdaLayer } from "../lambda-layer/lambda-layer";
 
-export class SignUpLambda extends Construct {
-  private static instance: SignUpLambda;
-  public lambda: Lambda.Function;
+export class GetInvoiceLambda extends Construct {
+  private static instance: GetInvoiceLambda;
+  private lambda: Lambda.Function;
 
   private constructor(scope: Construct, id: string) {
     super(scope, id);
     this.createLambda();
   }
 
+  public getLambda(): Lambda.Function {
+    return this.lambda;
+  }
+
   private createLambda() {
     this.lambda = new Lambda.Function(this, "Lambda", {
       runtime: Lambda.Runtime.NODEJS_16_X,
-      code: Lambda.AssetCode.fromAsset("dist/src/functions/sign-up"),
+      code: Lambda.AssetCode.fromAsset("dist/src/functions/get-invoice"),
       handler: "index.handler",
       layers: [LambdaLayer.getInstance().getLayer()],
       timeout: cdk.Duration.seconds(5),
       environment: {
-        USER_POOL_CLIENT_ID: InvoicesUserPoolClient.getUserPoolClient().userPoolClientId,
-        SNS_TOPIC_ARN: SnsTopic.getInstance().getSnsTopic().topicArn,
+        DYNAMODB_TABLE_NAME: DynamoDB.getInstance().invoicesTable.tableName,
       },
     });
 
-    this.lambda.addToRolePolicy(
-      new cdk.aws_iam.PolicyStatement({
-        actions: ['cognito-idp:SignUp'],
-        resources: [InvoicesUserPool.getUserPool().userPoolArn],
-      }),
-    );
+    DynamoDB.getInstance().invoicesTable.grantReadData(this.lambda);
 
     this.lambda.addToRolePolicy(
-      new cdk.aws_iam.PolicyStatement({
-        actions: ['sns:Subscribe', 'sns:ListSubscriptionsByTopic'],
-        resources: [SnsTopic.getInstance().getSnsTopic().topicArn],
+      new iam.PolicyStatement({
+        actions: ['dynamodb:Query'],
+        resources: [DynamoDB.getInstance().invoicesTable.tableArn],
       })
     );
   }
@@ -51,7 +48,7 @@ export class SignUpLambda extends Construct {
     }
   }
 
-  public static getInstance(): SignUpLambda {
+  public static getInstance(): GetInvoiceLambda {
     if (!this.instance) {
       throw Error("Resource has not yet been created");
     }

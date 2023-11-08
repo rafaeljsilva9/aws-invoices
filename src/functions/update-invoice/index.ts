@@ -27,14 +27,19 @@ const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise
   const { status } = JSON.parse(event.body as any);
   const service = new InvoicesService(dynamoDb, params.tableName);
   const notificationService = new NotificationService(sns, params.snsTopicArn);
-  const invoice = await service.getInvoice({ invoiceNumber, customerEmail: email });
+  const invoice = await service.getInvoice({ invoiceNumber });
 
   if (!invoice) {
     throw Exception.new({ code: HttpStatusCode.NOT_FOUND_ERROR, overrideMessage: 'The resource you want to update does not exist.' });
   }
 
+  const { CustomerEmail } = invoice;
+  if (CustomerEmail !== email) {
+    throw Exception.new({ code: HttpStatusCode.UNAUTHORIZED_ERROR });
+  }
+
   await notificationService.sendNotification(email, 'Invoice updates', `Your invoice of number ${invoiceNumber} has been updated. New status: ${status} `);
-  const response = await service.updateInvoice(invoiceNumber, { CustomerEmail: email, Status: status });
+  const response = await service.updateInvoice(invoiceNumber, { status });
 
   return response;
 }

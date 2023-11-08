@@ -13,6 +13,7 @@ import { LambdaLayer } from './lambda-layer/lambda-layer';
 import { DeleteInvoiceLambda } from './lambdas/delete-invoice-lambda';
 import { UpdateInvoiceLambda } from './lambdas/update-invoice-lambda';
 import { SnsTopic } from './sns/sns-topic';
+import { GetInvoiceLambda } from './lambdas/get-invoice-lambda';
 
 export class AwsInvoicesStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -41,6 +42,7 @@ export class AwsInvoicesStack extends cdk.Stack {
     ConfirmEmailLambda.construct(this, 'ConfirmEmail');
     CreateInvoicesLambda.construct(this, 'CreateInvoices');
     GetInvoicesLambda.construct(this, 'GetInvoices');
+    GetInvoiceLambda.construct(this, 'GetInvoice');
     DeleteInvoiceLambda.construct(this, 'DeleteInvoices');
     UpdateInvoiceLambda.construct(this, 'UpdateInvoices');
   }
