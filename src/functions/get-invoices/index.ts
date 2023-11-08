@@ -1,30 +1,26 @@
-import { APIGatewayEvent, APIGatewayProxyResult, Context, Handler } from 'aws-lambda';
+import { APIGatewayEvent, Context } from 'aws-lambda';
 import * as AWS from 'aws-sdk';
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from 'jwt-decode';
+import { GetInvoicesMiddleware } from './validation-middleware';
+import { Invoice } from '/opt/shared/models/Invoice';
+import { InvoicesService } from '/opt/shared/services/invoices-service';
+import { ApiLambdaHandler } from '/opt/shared/utils/api-lambda/api-lambda-handler';
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const params = {
   tableName: process.env.DYNAMODB_TABLE_NAME!!
 };
 
-export const handler: Handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
+const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise<Invoice[]> => {
   const { headers: { Authorization } } = event;
-  
   const { email } = jwtDecode(Authorization!!) as any;
-  
-  const invoices = await dynamoDb.query({
-    TableName: params.tableName,
-    IndexName: 'CustomerEmail',
-    KeyConditionExpression: 'CustomerEmail = :email',
-    ExpressionAttributeValues: {
-      ':email': email,
-    },
-  }).promise();
+  await GetInvoicesMiddleware.validate(event);
+  const { status } = event.queryStringParameters as any;
 
-  const response: APIGatewayProxyResult = {
-    statusCode: 200,
-    body: JSON.stringify({ invoices }),
-  };
+  const service = new InvoicesService(dynamoDb, params.tableName);
+  const invoices = await service.getInvoices({ customerEmail: email, status });
+  return invoices;
+}
 
-  return response;
-}; 
+const { handler } = new ApiLambdaHandler(lambdaHandler);
+export { handler };
