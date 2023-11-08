@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { CreateInvoicesLambda } from './lambdas/create-invoices-lambda';
+import { CreateInvoiceLambda } from './lambdas/create-invoices-lambda';
 import { ApiGateway } from './gateway/api-gateway';
 import { InvoicesUserPool } from './cognito/user-pool';
 import { InvoicesUserPoolClient } from './cognito/user-pool-client';
@@ -40,7 +40,7 @@ export class AwsInvoicesStack extends cdk.Stack {
     SignUpLambda.construct(this, 'SignUp');
     SignInLambda.construct(this, 'SignIn');
     ConfirmEmailLambda.construct(this, 'ConfirmEmail');
-    CreateInvoicesLambda.construct(this, 'CreateInvoices');
+    CreateInvoiceLambda.construct(this, 'CreateInvoice');
     GetInvoicesLambda.construct(this, 'GetInvoices');
     GetInvoiceLambda.construct(this, 'GetInvoice');
     DeleteInvoiceLambda.construct(this, 'DeleteInvoices');

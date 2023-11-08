@@ -7,7 +7,19 @@ export class InvoicesService {
     private readonly tableName: string
   ) { }
 
-  async getInvoices({ customerEmail, status }: { customerEmail: string, status?: string }): Promise<Invoice[]> {
+  async createInvoice(invoice: Invoice): Promise<Invoice> {
+    const { InvoiceNumber } = invoice;
+    const result = await this.docClient
+      .put({
+        TableName: this.tableName,
+        Item: invoice,
+      })
+      .promise();
+
+    return this.getInvoice(InvoiceNumber);
+  }
+
+  async getInvoices({ customerEmail, invoiceStatus }: { customerEmail: string, invoiceStatus?: string }): Promise<Invoice[]> {
     const attributeNames: AWS.DynamoDB.DocumentClient.ExpressionAttributeNameMap = {
       '#CustomerEmail': 'CustomerEmail'
     };
@@ -17,10 +29,10 @@ export class InvoicesService {
 
     let filterExpression = undefined;
 
-    if (status) {
-      filterExpression = '#Status = :status';
-      attributeNames['#Status'] = 'Status';
-      attributeValues[':status'] = status;
+    if (invoiceStatus) {
+      filterExpression = '#InvoiceStatus = :status';
+      attributeNames['#InvoiceStatus'] = 'InvoiceStatus';
+      attributeValues[':status'] = invoiceStatus;
     }
 
     const params = {
@@ -46,7 +58,7 @@ export class InvoicesService {
     return result.Items as Invoice[];
   }
 
-  async getInvoice({ invoiceNumber, customerEmail }: { invoiceNumber: string, customerEmail?: string }): Promise<Invoice> {
+  async getInvoice(invoiceNumber: string): Promise<Invoice> {
     const result = await this.docClient
       .get({
         TableName: this.tableName,
@@ -55,17 +67,6 @@ export class InvoicesService {
       .promise();
 
     return result.Item as Invoice;
-  }
-
-  async createInvoice(invoice: Invoice): Promise<Invoice> {
-    await this.docClient
-      .put({
-        TableName: this.tableName,
-        Item: invoice,
-      })
-      .promise();
-
-    return invoice;
   }
 
   async updateInvoice(invoiceNumber: string, invoice: { status: string }): Promise<Invoice> {
@@ -77,9 +78,9 @@ export class InvoicesService {
           InvoiceNumber: invoiceNumber,
         },
         UpdateExpression:
-          "set #Status = :status",
+          "set #InvoiceStatus = :status",
         ExpressionAttributeNames: {
-          '#Status': 'Status'
+          '#InvoiceStatus': 'InvoiceStatus'
         },
         ExpressionAttributeValues: {
           ":status": status,

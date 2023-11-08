@@ -22,12 +22,12 @@ const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise
   const { email } = jwtDecode(Authorization!!) as any;
 
   await UpdateInvoiceMiddleware.validate(event);
-  
+
   const { invoiceNumber } = event.pathParameters as any;
   const { status } = JSON.parse(event.body as any);
   const service = new InvoicesService(dynamoDb, params.tableName);
   const notificationService = new NotificationService(sns, params.snsTopicArn);
-  const invoice = await service.getInvoice({ invoiceNumber });
+  const invoice = await service.getInvoice(invoiceNumber);
 
   if (!invoice) {
     throw Exception.new({ code: HttpStatusCode.NOT_FOUND_ERROR, overrideMessage: 'The resource you want to update does not exist.' });

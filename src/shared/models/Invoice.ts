@@ -1,10 +1,11 @@
 export interface Invoice {
   InvoiceNumber: string;
   InvoiceDate: string;
+  InvoiceStatus: string;
   DueDate: string;
-  CustomerEmail: string;
-  Status: string;
   TotalAmount: number;
+  CustomerName: string,
+  CustomerEmail: string,
   LineItems: Array<{
     ItemName: string;
     Quantity: number;

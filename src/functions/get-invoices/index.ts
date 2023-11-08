@@ -17,14 +17,14 @@ const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise
   await GetInvoicesMiddleware.validate(event);
 
   const queryParams = event.queryStringParameters as any;
-  let status = undefined;
+  let invoiceStatus = undefined;
 
   if (queryParams) {
-    status = queryParams.status;
+    invoiceStatus = queryParams.status;
   }
 
   const service = new InvoicesService(dynamoDb, params.tableName);
-  const invoices = await service.getInvoices({ customerEmail: email, status });
+  const invoices = await service.getInvoices({ customerEmail: email, invoiceStatus });
   return invoices;
 }
 

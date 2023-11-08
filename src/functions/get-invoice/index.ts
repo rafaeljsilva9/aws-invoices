@@ -20,7 +20,7 @@ const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise
   const { invoiceNumber } = event.pathParameters as any;
 
   const service = new InvoicesService(dynamoDb, params.tableName);
-  const invoice = await service.getInvoice({ invoiceNumber });
+  const invoice = await service.getInvoice(invoiceNumber);
 
   if (invoice === undefined) {
     throw Exception.new({ code: HttpStatusCode.NOT_FOUND_ERROR });

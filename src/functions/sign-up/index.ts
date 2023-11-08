@@ -12,7 +12,7 @@ const params = {
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const { body } = event;
-  const { username, password, email } = JSON.parse(body!) as LambdaInput;
+  const { username, password, email } = JSON.parse(body!!) as LambdaInput;
 
   if (username === undefined || password === undefined || email === undefined) {
     return { statusCode: 400, body: 'Missing username, email, or password' };

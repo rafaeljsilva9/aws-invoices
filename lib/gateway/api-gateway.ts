@@ -3,7 +3,7 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
-import { CreateInvoicesLambda } from '../lambdas/create-invoices-lambda';
+import { CreateInvoiceLambda } from '../lambdas/create-invoices-lambda';
 import { SignUpLambda } from "../lambdas/sign-up-lambda";
 import { InvoicesUserPool } from "../cognito/user-pool";
 import { SignInLambda } from "../lambdas/sign-in-lambda";
@@ -99,7 +99,7 @@ export class ApiGateway extends Construct {
 
   private createInvoicesMethod(resource: apigateway.Resource, authorizer: apigateway.CognitoUserPoolsAuthorizer) {
     const lambdaIntegration = new apigateway.LambdaIntegration(
-      CreateInvoicesLambda.getInstance().lambda, { proxy: true }
+      CreateInvoiceLambda.getInstance().lambda, { proxy: true }
     );
 
     resource.addMethod("POST", lambdaIntegration, {

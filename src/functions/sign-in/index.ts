@@ -6,7 +6,7 @@ const client = new CognitoIdentityProviderClient({});
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const { body } = event;
-  const { username, password } = JSON.parse(body!) as LambdaInput;
+  const { username, password } = JSON.parse(body!!) as LambdaInput;
 
   if (username === undefined || password === undefined) {
     return Promise.resolve({ statusCode: 400, body: 'Missing username or password' });
