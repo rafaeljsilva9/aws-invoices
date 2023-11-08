@@ -10,6 +10,7 @@ import { SignInLambda } from "../lambdas/sign-in-lambda";
 import { ConfirmEmailLambda } from "../lambdas/confirm-email-lambda";
 import { GetInvoicesLambda } from "../lambdas/get-invoices-lambda";
 import { DeleteInvoiceLambda } from "../lambdas/delete-invoice-lambda";
+import { UpdateInvoiceLambda } from "../lambdas/update-invoice-lambda";
 
 export class ApiGateway extends Construct {
   constructor(scope: Construct, id: string) {
@@ -46,6 +47,7 @@ export class ApiGateway extends Construct {
 
     const invoiceIdResource = invoicesResource.addResource("{invoiceNumber}");
     this.deleteInvoicesMethod(invoiceIdResource, authorizer);
+    this.updateInvoicesMethod(invoiceIdResource, authorizer);
 
     this.exportFixedOutputs(api);
   }
@@ -123,6 +125,18 @@ export class ApiGateway extends Construct {
     );
 
     resource.addMethod("DELETE", lambdaIntegration, {
+      authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+      methodResponses: [{ statusCode: "200" }],
+    });
+  }
+
+  private updateInvoicesMethod(resource: apigateway.Resource, authorizer: apigateway.CognitoUserPoolsAuthorizer) {
+    const lambdaIntegration = new apigateway.LambdaIntegration(
+      UpdateInvoiceLambda.getInstance().getLambda(), { proxy: true }
+    );
+
+    resource.addMethod("PUT", lambdaIntegration, {
       authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
       methodResponses: [{ statusCode: "200" }],

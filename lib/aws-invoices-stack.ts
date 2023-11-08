@@ -11,6 +11,7 @@ import { DynamoDB } from './dynamo/dynamo-db';
 import { GetInvoicesLambda } from './lambdas/get-invoices-lambda';
 import { LambdaLayer } from './lambda-layer/lambda-layer';
 import { DeleteInvoiceLambda } from './lambdas/delete-invoice-lambda';
+import { UpdateInvoiceLambda } from './lambdas/update-invoice-lambda';
 
 export class AwsInvoicesStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -39,5 +40,6 @@ export class AwsInvoicesStack extends cdk.Stack {
     CreateInvoicesLambda.construct(this, 'CreateInvoices');
     GetInvoicesLambda.construct(this, 'GetInvoices');
     DeleteInvoiceLambda.construct(this, 'DeleteInvoices');
+    UpdateInvoiceLambda.construct(this, 'UpdateInvoices');
   }
 }

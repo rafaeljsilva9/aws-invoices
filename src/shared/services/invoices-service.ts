@@ -68,27 +68,29 @@ export class InvoicesService {
     return invoice;
   }
 
-  // async updateInvoice(invoiceId: string, partialPost: Partial<Invoice>): Promise<Invoice> {
-  //   const updated = await this.docClient
-  //     .update({
-  //       TableName: this.tableName,
-  //       Key: { postId: invoiceId },
-  //       UpdateExpression:
-  //         "set #title = :title, description = :description, active = :active",
-  //       ExpressionAttributeNames: {
-  //         "#title": "title",
-  //       },
-  //       ExpressionAttributeValues: {
-  //         ":title": partialPost.title,
-  //         ":description": partialPost.description,
-  //         ":active": partialPost.active,
-  //       },
-  //       ReturnValues: "ALL_NEW",
-  //     })
-  //     .promise();
+  async updateInvoice(invoiceNumber: string, partialInvoice: Partial<Invoice>): Promise<Invoice> {
+    console.log('partialInvoice', partialInvoice)
+    const updated = await this.docClient
+      .update({
+        TableName: this.tableName,
+        Key: {
+          InvoiceNumber: invoiceNumber,
+          CustomerEmail: partialInvoice.CustomerEmail,
+        },
+        UpdateExpression:
+          "set #Status = :status",
+        ExpressionAttributeNames: {
+          '#Status': 'Status'
+        },
+        ExpressionAttributeValues: {
+          ":status": partialInvoice.Status,
+        },
+        ReturnValues: "ALL_NEW",
+      })
+      .promise();
 
-  //   return updated.Attributes as Invoice;
-  // }
+    return updated.Attributes as Invoice;
+  }
 
   async deleteInvoice({ invoiceNumber, customerEmail }: { invoiceNumber: string, customerEmail: string }) {
     return this.docClient
