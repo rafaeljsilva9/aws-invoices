@@ -7,7 +7,7 @@ export class UpdateInvoiceMiddleware {
   });
 
   private static bodySchema = joi.object().keys({
-    status: joi.string().valid('Paid','Unpaid', 'Pending').required()
+    status: joi.string().valid('Paid', 'Unpaid', 'Pending').required()
   });
 
   static async validate(event: APIGatewayEvent): Promise<void> {

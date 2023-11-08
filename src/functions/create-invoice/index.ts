@@ -3,7 +3,7 @@ import * as AWS from 'aws-sdk';
 import { jwtDecode } from 'jwt-decode';
 import { LambdaInput } from './lambda-input';
 import { CreateInvoiceMiddleware } from './validation-middleware';
-import { Invoice } from '/opt/shared/models/Invoice';
+import { InvoiceDto } from '/opt/shared/dtos/Invoice';
 import { InvoicesService } from '/opt/shared/services/invoices-service';
 import { ApiLambdaHandler } from '/opt/shared/utils/api-lambda/api-lambda-handler';
 import { InvoiceGenerator, InvoiceGeneratorPayload } from '/opt/shared/utils/invoice-generator';
@@ -13,7 +13,7 @@ const params = {
   tableName: process.env.DYNAMODB_TABLE_NAME!!
 };
 
-const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise<Invoice> => {
+const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise<InvoiceDto> => {
   const { headers: { Authorization }, body } = event;
   const { email } = jwtDecode(Authorization!!) as any;
 
@@ -28,7 +28,8 @@ const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise
   }
 
   const service = new InvoicesService(dynamoDb, params.tableName);
-  return await service.createInvoice(InvoiceGenerator.generate(invoice));
+  const newInvoice = await service.createInvoice(InvoiceGenerator.generate(invoice));
+  return InvoiceDto.fromObject(newInvoice);
 }
 
 const { handler } = new ApiLambdaHandler(lambdaHandler);

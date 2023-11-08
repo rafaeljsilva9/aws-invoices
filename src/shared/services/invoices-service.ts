@@ -1,4 +1,4 @@
-import { DocumentClient, ExpressionAttributeNameMap, ExpressionAttributeValueMap } from "aws-sdk/clients/dynamodb";
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { Invoice } from "../models/Invoice";
 
 export class InvoicesService {
@@ -9,7 +9,7 @@ export class InvoicesService {
 
   async createInvoice(invoice: Invoice): Promise<Invoice> {
     const { InvoiceNumber } = invoice;
-    const result = await this.docClient
+    await this.docClient
       .put({
         TableName: this.tableName,
         Item: invoice,

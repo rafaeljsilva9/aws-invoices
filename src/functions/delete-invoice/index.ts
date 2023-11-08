@@ -13,7 +13,7 @@ const params = {
   tableName: process.env.DYNAMODB_TABLE_NAME!!
 };
 
-const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise<{}> => {
+const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise<{ deleted: boolean}> => {
   const { headers: { Authorization } } = event;
   const { email } = jwtDecode(Authorization!!) as any;
 
@@ -33,7 +33,7 @@ const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise
   }
 
   await service.deleteInvoice(invoiceNumber);
-  return {};
+  return { deleted: true };
 }
 
 const { handler } = new ApiLambdaHandler(lambdaHandler);
