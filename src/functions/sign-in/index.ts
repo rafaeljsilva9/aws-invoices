@@ -31,7 +31,7 @@ const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise
     const idToken = result.AuthenticationResult?.IdToken;
 
     if (idToken === undefined) {
-      throw Exception.new({ code: HttpStatusCode.UNAUTHORIZED_ERROR, overrideMessage: 'Authentication failed' });
+      throw Exception.new({ code: HttpStatusCode.ACCESS_DENIED_ERROR, overrideMessage: 'Authentication failed' });
     }
 
     return { token: idToken };

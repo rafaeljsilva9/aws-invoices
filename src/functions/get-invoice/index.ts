@@ -28,7 +28,7 @@ const lambdaHandler = async (event: APIGatewayEvent, _context: Context): Promise
 
   const { CustomerEmail } = invoice;
   if (CustomerEmail !== email) {
-    throw Exception.new({ code: HttpStatusCode.UNAUTHORIZED_ERROR });
+    throw Exception.new({ code: HttpStatusCode.ACCESS_DENIED_ERROR });
   }
   return InvoiceDto.fromObject(invoice);
 }

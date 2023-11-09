@@ -1,0 +1,492 @@
+openapi: 3.0.0
+info:
+  title: Invoices API
+  description: An API for managing invoices
+  version: 1.0.0
+tags:
+  - name: Auth
+    description: APIs related to user authentication
+  - name: Invoices
+    description: APIs related to invoices
+paths:
+  /api/auth/sign-up:
+    post:
+      summary: Sign up a new user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - email
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                email:
+                  type: string
+      responses:
+        '200':
+          description: User signed up successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      created:
+                        type: boolean
+              example:
+                data:
+                  created: true
+        '400':
+          description: Bad request
+  /api/auth/sign-in:
+    post:
+      summary: Sign in with username and password
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User signed in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+              example:
+                data:
+                  token: "eyJraWQiOiJBQTZ3cmIwekVZVXQ1WWtwbGowamC9..."
+        '400':
+          description: Bad request
+  /api/auth/confirm-email:
+    post:
+      summary: Confirm email with code
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - code
+              properties:
+                username:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: Email confirmed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      confirmed:
+                        type: boolean
+              example:
+                data:
+                  confirmed: true
+        '400':
+          description: Bad request
+  /api/invoices:
+    post:
+      summary: Create a new invoice
+      tags:
+        - Invoices
+      parameters:
+        - in: header
+          name: Authorization
+          description: "Token de autenticação"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dueDate:
+                  type: string
+                  format: date-time
+                customerName:
+                  type: string
+                lineItems:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      itemName:
+                        type: string
+                      quantity:
+                        type: integer
+                      unityPrice:
+                        type: number
+      responses:
+        '200':
+          description: Invoice created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      invoiceNumber:
+                        type: string
+                      invoiceDate:
+                        type: string
+                      invoiceStatus:
+                        type: string
+                      dueDate:
+                        type: string
+                      totalAmount:
+                        type: number
+                      customerName:
+                        type: string
+                      customerEmail:
+                        type: string
+                      lineItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            itemName:
+                              type: string
+                            quantity:
+                              type: integer
+                            unityPrice:
+                              type: number
+              example:
+                data:
+                  invoiceNumber: "INV-042756"
+                  invoiceDate: "2023-11-08T22:52:15.267Z"
+                  invoiceStatus: "Unpaid"
+                  dueDate: "2023-04-12T14:00:00Z"
+                  totalAmount: 250
+                  customerName: "Andre Santos"
+                  customerEmail: "andre.santos@gmail.com"
+                  lineItems:
+                    - itemName: "Iphone 15"
+                      quantity: 2
+                      unityPrice: 100
+                    - itemName: "Iphone 14"
+                      quantity: 1
+                      unityPrice: 50
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+    get:
+      summary: Get a list of invoices
+      tags:
+        - Invoices
+      parameters:
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: Authorization
+          description: "Token de autenticação"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of invoices retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        invoiceNumber:
+                          type: string
+                        invoiceDate:
+                          type: string
+                        invoiceStatus:
+                          type: string
+                        dueDate:
+                          type: string
+                        totalAmount:
+                          type: number
+                        customerName:
+                          type: string
+                        customerEmail:
+                          type: string
+                        lineItems:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              itemName:
+                                type: string
+                              quantity:
+                                type: integer
+                              unityPrice:
+                                type: number
+              example:
+                data:
+                  - invoiceNumber: "INV-097096"
+                    invoiceDate: "2023-11-08T21:50:26.813Z"
+                    invoiceStatus: "Unpaid"
+                    dueDate: "2023-04-12T14:00:00Z"
+                    totalAmount: 250
+                    customerName: "Andre Santos"
+                    customerEmail: "rjs@cesar.org.br"
+                    lineItems:
+                      - itemName: "Iphone 15"
+                        quantity: 2
+                        unityPrice: 100
+                      - itemName: "Iphone 14"
+                        quantity: 1
+                        unityPrice: 50
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+  /api/invoices/{invoiceNumber}:
+    get:
+      summary: Get a specific invoice by invoice number
+      tags:
+        - Invoices
+      parameters:
+        - in: path
+          name: invoiceNumber
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: Authorization
+          description: "Token de autenticação"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      invoiceNumber:
+                        type: string
+                      invoiceDate:
+                        type: string
+                      invoiceStatus:
+                        type: string
+                      dueDate:
+                        type: string
+                      totalAmount:
+                        type: number
+                      customerName:
+                        type: string
+                      customerEmail:
+                        type: string
+                      lineItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            itemName:
+                              type: string
+                            quantity:
+                              type: integer
+                            unityPrice:
+                              type: number
+              example:
+                data:
+                  invoiceNumber: "INV-042756"
+                  invoiceDate: "2023-11-08T22:52:15.267Z"
+                  invoiceStatus: "Unpaid"
+                  dueDate: "2023-04-12T14:00:00Z"
+                  totalAmount: 250
+                  customerName: "Andre Santos"
+                  customerEmail: "andre.santos@gmail.com"
+                  lineItems:
+                    - itemName: "Iphone 15"
+                      quantity: 2
+                      unityPrice: 100
+                    - itemName: "Iphone 14"
+                      quantity: 1
+                      unityPrice: 50
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '401':
+          description: Unauthorized
+        '404':
+          description: Invoice not found
+    delete:
+      summary: Delete a specific invoice by invoice number
+      tags:
+        - Invoices
+      parameters:
+        - in: path
+          name: invoiceNumber
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: Authorization
+          description: "Token de autenticação"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Invoice deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      deleted:
+                        type: boolean
+              example:
+                data:
+                  deleted: true
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '401':
+          description: Unauthorized
+        '404':
+          description: Invoice not found
+    put:
+      summary: Update a specific invoice by invoice number
+      tags:
+        - Invoices
+      parameters:
+        - in: path
+          name: invoiceNumber
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: Authorization
+          description: "Token de autenticação"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Invoice updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      invoiceNumber:
+                        type: string
+                      invoiceDate:
+                        type: string
+                      invoiceStatus:
+                        type: string
+                      dueDate:
+                        type: string
+                      totalAmount:
+                        type: number
+                      customerName:
+                        type: string
+                      customerEmail:
+                        type: string
+                      lineItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            itemName:
+                              type: string
+                            quantity:
+                              type: integer
+                            unityPrice:
+                              type: number
+              example:
+                data:
+                  invoiceNumber: "INV-063970"
+                  invoiceDate: "2023-11-08T22:12:28.958Z"
+                  invoiceStatus: "Paid"
+                  dueDate: "2023-04-12T14:00:00Z"
+                  totalAmount: 250
+                  customerName: "Andre Santos"
+                  customerEmail: "andre.santos@gmail.com"
+                  lineItems:
+                    - itemName: "Iphone 15"
+                      quantity: 2
+                      unityPrice: 100
+                    - itemName: "Iphone 14"
+                      quantity: 1
+                      unityPrice: 50
+        '400':
+          description: Bad request
+        '403':
+          description: Forbidden
+        '401':
+          description: Unauthorized
+        '404':
+          description: Invoice not found

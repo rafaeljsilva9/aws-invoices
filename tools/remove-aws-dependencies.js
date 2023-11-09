@@ -4,7 +4,6 @@ const packageJson = require(fileName);
 
 delete packageJson.scripts;
 delete packageJson.devDependencies;
-delete packageJson.dependencies['@aws-sdk/client-cognito-identity-provider']; 
 delete packageJson.dependencies['@types/aws-lambda'];
 delete packageJson.dependencies['aws-cdk-lib'];
 delete packageJson.dependencies['aws-sdk'];
