@@ -7,17 +7,13 @@ export class SnsTopic extends Construct {
 
   private constructor(scope: Construct, id: string) {
     super(scope, id);
-    this.createTable();
+    this.snsTopic = new aws_sns.Topic(this, 'SNSTopic', {
+      displayName: 'Invoices SNS Topic',
+    });
   }
 
   public getSnsTopic(): aws_sns.Topic {
     return this.snsTopic
-  }
-
-  private createTable() {
-    this.snsTopic = new aws_sns.Topic(this, 'SNSTopic', {
-      displayName: 'Invoices SNS Topic',
-    });
   }
 
   public static construct(scope: Construct, id: string): void {
